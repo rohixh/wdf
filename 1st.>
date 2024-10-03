@@ -1,0 +1,109 @@
+const express = require('express');
+const url = require('url');
+const formidable = require('formidable');
+const fs = require('fs');
+
+const app = express();
+const port = 3000;
+
+// Middleware to serve static files
+app.use(express.static('public'));
+
+// Display a message in the browser
+app.get('/', (req, res) => {
+    res.send(`<h1>Welcome to the Node.js Program!</h1>
+              <p>Check the following functionalities:</p>
+              <ul>
+                <li><a href="/date">Show Date & Time</a></li>
+                <li><a href="/query?name=John">Query String Example</a></li>
+                <li><a href="/split-url?url=https://www.example.com/page?query=test">URL Split</a></li>
+                <li><a href="/fileupload">File Upload</a></li>
+              </ul>`);
+});
+
+// Display the current date and time in the browser
+app.get('/date', (req, res) => {
+    const currentDateTime = new Date();
+    res.send(`<h2>Current Date and Time: ${currentDateTime}</h2>`);
+});
+
+// Pass a query string in URL
+app.get('/query', (req, res) => {
+    const name = req.query.name || 'Guest';
+    res.send(`<h2>Hello, ${name}!</h2>`);
+});
+
+// Splits up a web address into readable parts
+app.get('/split-url', (req, res) => {
+    const address = req.query.url;
+    if (address) {
+        const parsedUrl = url.parse(address, true);
+        res.send(`<h2>URL Parts:</h2>
+                  <ul>
+                    <li>Protocol: ${parsedUrl.protocol}</li>
+                    <li>Host: ${parsedUrl.host}</li>
+                    <li>Pathname: ${parsedUrl.pathname}</li>
+                    <li>Query: ${JSON.stringify(parsedUrl.query)}</li>
+                  </ul>`);
+    } else {
+        res.send(`<h2>Please provide a URL to split.</h2>`);
+    }
+});
+
+// Display customized error message
+app.get('/error', (req, res) => {
+    res.status(404).send(`<h2>Error: Page not found!</h2>`);
+});
+
+// File upload operation
+app.get('/fileupload', (req, res) => {
+    res.sendFile(__dirname + '/public/upload.html');
+});
+
+app.post('/fileupload', (req, res) => {
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+        if (err) {
+            res.send('Error uploading file.');
+        }
+        const oldPath = files.filetoupload.filepath;
+        const newPath = __dirname + '/uploads/' + files.filetoupload.originalFilename;
+        fs.rename(oldPath, newPath, (err) => {
+            if (err) throw err;
+            res.send('File uploaded and moved successfully!');
+        });
+    });
+});
+
+// Event handling - logging request
+app.use((req, res, next) => {
+    console.log(`${req.method} request for '${req.url}'`);
+    next();
+});
+
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>File Upload Form</h2>
+<form action="/fileupload" method="post" enctype="multipart/form-data">
+  <input type="file" name="filetoupload"><br><br>
+  <input type="submit">
+</form>
+
+</body>
+</html>
