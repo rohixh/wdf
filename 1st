@@ -1,0 +1,66 @@
+const express = require('express');
+const formidable = require('formidable');
+const url = require('url');
+const fs = require('fs');
+const app = express();
+const port = 3000;
+
+// Display message in the browser
+app.get('/', (req, res) => {
+    res.send('Welcome to the simplest Node.js app!');
+});
+
+// Display current date and time
+app.get('/date', (req, res) => {
+    res.send('Current Date and Time: ' + new Date());
+});
+
+// Handle query string (e.g., /query?name=John)
+app.get('/query', (req, res) => {
+    res.send('Hello, ' + (req.query.name || 'Guest'));
+});
+
+// Split URL into readable parts
+app.get('/split-url', (req, res) => {
+    const address = req.query.url;
+    if (address) {
+        const parsedUrl = url.parse(address, true);
+        res.send('Protocol: ' + parsedUrl.protocol + '<br>Host: ' + parsedUrl.host);
+    } else {
+        res.send('Please provide a URL to split.');
+    }
+});
+
+// Display custom error message
+app.get('/error', (req, res) => {
+    res.status(404).send('Custom Error: Page not found!');
+});
+
+// File upload form
+app.get('/upload', (req, res) => {
+    res.send(`<form action="/upload" method="post" enctype="multipart/form-data">
+                <input type="file" name="file"><br><br>
+                <input type="submit" value="Upload File">
+              </form>`);
+});
+
+// Handle file upload
+app.post('/upload', (req, res) => {
+    const form = new formidable.IncomingForm();
+    form.parse(req, (err, fields, files) => {
+        const oldPath = files.file.filepath;
+        const newPath = __dirname + '/uploads/' + files.file.originalFilename;
+        fs.rename(oldPath, newPath, () => res.send('File uploaded!'));
+    });
+});
+
+// Simple event handling - log each request
+app.use((req, res, next) => {
+    console.log('Request for ' + req.url);
+    next();
+});
+
+// Start the server
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
