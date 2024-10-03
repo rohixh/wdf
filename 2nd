@@ -1,0 +1,51 @@
+const express = require('express');
+const app = express();
+const port = 3000;
+
+// Middleware 1: Logs the method and URL of every request
+const loggerMiddleware = (req, res, next) => {
+    console.log(`${req.method} request for '${req.url}'`);
+    next();  // Call next to pass control to the next middleware/handler
+};
+
+// Middleware 2: Adds a custom header to every response
+const customHeaderMiddleware = (req, res, next) => {
+    res.setHeader('X-Custom-Header', 'LearningExpress');
+    next();  // Continue to the next middleware/handler
+};
+
+// Apply the middlewares globally (to all routes)
+app.use(loggerMiddleware);
+app.use(customHeaderMiddleware);
+
+// Use express.json middleware to parse JSON data from POST requests
+app.use(express.json());
+
+// Filtering paths using URL prefix '/api'
+app.get('/api/data', (req, res) => {
+    res.send('This is data from the /api prefix');
+});
+
+app.get('/api/info', (req, res) => {
+    res.send('This is information from the /api prefix');
+});
+
+// Setting the status code explicitly
+app.get('/status', (req, res) => {
+    res.status(201).send('Created: Custom status code 201');
+});
+
+// Parsing data from a POST request
+app.post('/submit', (req, res) => {
+    const { name, age } = req.body;  // Extracting name and age from the request body
+    if (name && age) {
+        res.send(`Received data: Name is ${name}, Age is ${age}`);
+    } else {
+        res.status(400).send('Bad Request: Missing name or age');
+    }
+});
+
+// Start the server
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
