@@ -1,0 +1,43 @@
+const express = require('express');
+const app = express();
+const port = 3000;
+
+// Middleware 1: Logs the request URL
+const loggerMiddleware = (req, res, next) => {
+    console.log('Request URL:', req.url);
+    next();  // Move to the next middleware/handler
+};
+
+// Middleware 2: Adds a simple header
+const headerMiddleware = (req, res, next) => {
+    res.setHeader('X-Simple-Header', 'ExpressMiddleware');
+    next();  // Continue to the next handler
+};
+
+// Apply middlewares to all routes
+app.use(loggerMiddleware);
+app.use(headerMiddleware);
+
+// Parsing JSON data from requests
+app.use(express.json());
+
+// URL prefix filtering - Only matches paths with '/api'
+app.get('/api/data', (req, res) => {
+    res.send('This is /api/data');
+});
+
+// Set status code explicitly
+app.get('/status', (req, res) => {
+    res.status(202).send('Accepted: Status 202');
+});
+
+// Parse data from a POST request
+app.post('/submit', (req, res) => {
+    const { name } = req.body;  // Extract name from request body
+    res.send(`Hello, ${name || 'Guest'}`);
+});
+
+// Start server
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
